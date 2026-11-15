@@ -3,25 +3,245 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Sudoku - Mobile Edition</title>
-    <!-- Tailwind CSS for responsive layout & utilities -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
     <style>
-        /* Custom styles for crisp Sudoku grid borders, touch feedback, and animations */
-        * {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        /* ============================================================================
+           RESET, DESIGN TOKENS & SYSTEM-FRIENDLY MOBILE STYLES (ZERO EXTERNAL DEPS)
+           ============================================================================ */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Helvetica, Arial, sans-serif;
             -webkit-tap-highlight-color: transparent;
             user-select: none;
         }
 
-        body {
-            background-color: #f8fafc;
-            color: #0f172a;
+        :root {
+            --bg-page: #f8fafc;
+            --bg-card: #ffffff;
+            --bg-subtle: #f1f5f9;
+            --bg-subtle-hover: #e2e8f0;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --border-light: #e2e8f0;
+            --border-cell: #cbd5e1;
+            --border-grid: #1e293b;
+            --accent: #2563eb;
+            --accent-hover: #1d4ed8;
+            --accent-soft: #dbeafe;
+            --accent-selected: #bfdbfe;
+            --cell-related: #f1f5f9;
+            --error-bg: #fee2e2;
+            --error-text: #dc2626;
+            --success-text: #059669;
+            --success-bg: #d1fae5;
+        }
+
+        html, body {
+            width: 100%;
+            min-height: 100vh;
+            min-height: 100dvh;
+            background-color: var(--bg-page);
+            color: var(--text-primary);
             overscroll-behavior-y: contain;
         }
 
-        /* Responsive Square Grid Container */
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px 14px;
+            gap: 8px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 440px;
+        }
+
+        /* ============================================================================
+           HEADER & DIFFICULTY BAR
+           ============================================================================ */
+        header {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .brand-badge {
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: #ffffff;
+            font-weight: 800;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 6px rgba(37, 99, 235, 0.28);
+        }
+
+        .brand-title {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: var(--text-primary);
+        }
+
+        .top-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn {
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            border-radius: 10px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            transition: transform 0.08s ease, background-color 0.15s ease, opacity 0.15s ease;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn-secondary {
+            background-color: var(--bg-subtle-hover);
+            color: #334155;
+            padding: 7px 11px;
+            font-size: 12px;
+        }
+
+        .btn-secondary:hover {
+            background-color: #cbd5e1;
+        }
+
+        .btn-primary {
+            background-color: var(--accent);
+            color: #ffffff;
+            padding: 7px 13px;
+            font-size: 12px;
+            box-shadow: 0 2px 5px rgba(37, 99, 235, 0.22);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .status-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 8px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+        }
+
+        .diff-tabs {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 4px;
+            background-color: var(--bg-subtle);
+            padding: 3px;
+            border-radius: 9px;
+        }
+
+        .diff-btn {
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 11px;
+            font-weight: 600;
+            padding: 5px 2px;
+            border-radius: 7px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .diff-btn.active {
+            background-color: var(--bg-card);
+            color: var(--accent);
+            font-weight: 700;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+        }
+
+        .stats-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 4px 2px 0;
+            border-top: 1px solid var(--bg-subtle);
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .mistake-val {
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+
+        .mistake-val.has-error {
+            color: var(--error-text);
+        }
+
+        .autosave-pill {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .autosave-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: #10b981;
+        }
+
+        .timer-box {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-variant-numeric: tabular-nums;
+            color: var(--text-primary);
+        }
+
+        /* ============================================================================
+           9x9 SUDOKU GRID & CELL STATES
+           ============================================================================ */
+        main {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            width: 100%;
+        }
+
         .sudoku-grid {
             display: grid;
             grid-template-columns: repeat(9, 1fr);
@@ -29,34 +249,34 @@
             aspect-ratio: 1 / 1;
             width: 100%;
             max-width: 440px;
-            border: 2.5px solid #1e293b;
-            background-color: #ffffff;
-            box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+            border: 2.5px solid var(--border-grid);
+            background-color: var(--bg-card);
             border-radius: 12px;
             overflow: hidden;
+            box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 4px 10px -4px rgba(15, 23, 42, 0.04);
         }
 
-        /* Individual Cell Styling */
         .cell {
             position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-right: 1px solid #cbd5e1;
-            border-bottom: 1px solid #cbd5e1;
-            font-size: clamp(1.15rem, 5vw, 1.55rem);
+            border-right: 1px solid var(--border-cell);
+            border-bottom: 1px solid var(--border-cell);
+            font-size: clamp(1.15rem, 5.2vw, 1.55rem);
             cursor: pointer;
-            transition: background-color 0.12s ease, transform 0.08s ease;
+            background-color: var(--bg-card);
+            transition: background-color 0.1s ease, transform 0.08s ease;
         }
 
         .cell:active {
-            transform: scale(0.95);
+            transform: scale(0.94);
         }
 
-        /* Thick 3x3 Subgrid Borders */
+        /* Crisp 3x3 Subgrid Borders */
         .cell[data-col="2"],
         .cell[data-col="5"] {
-            border-right: 2.5px solid #1e293b;
+            border-right: 2.5px solid var(--border-grid);
         }
 
         .cell[data-col="8"] {
@@ -65,53 +285,53 @@
 
         .cell[data-row="2"],
         .cell[data-row="5"] {
-            border-bottom: 2.5px solid #1e293b;
+            border-bottom: 2.5px solid var(--border-grid);
         }
 
         .cell[data-row="8"] {
             border-bottom: none;
         }
 
-        /* Cell States & Highlighting */
+        /* Given vs User-Entered Typography */
         .cell-given {
             font-weight: 700;
-            color: #0f172a;
+            color: var(--text-primary);
         }
 
         .cell-user {
             font-weight: 600;
-            color: #2563eb;
+            color: var(--accent);
         }
 
         /* Highlight: Same Row, Column, or 3x3 Box */
         .cell-related {
-            background-color: #f1f5f9;
+            background-color: var(--cell-related);
         }
 
-        /* Highlight: Same Number as Selected */
+        /* Highlight: Same Digit Across Grid */
         .cell-same-num {
-            background-color: #dbeafe;
-            color: #1d4ed8;
+            background-color: var(--accent-soft);
+            color: var(--accent-hover);
         }
 
-        /* Highlight: Currently Selected Cell */
+        /* Highlight: Active Selected Cell */
         .cell-selected {
-            background-color: #bfdbfe !important;
-            box-shadow: inset 0 0 0 2px #2563eb;
+            background-color: var(--accent-selected) !important;
+            box-shadow: inset 0 0 0 2px var(--accent);
         }
 
         /* Mistake Highlighting (Distinct Red) */
         .cell-error {
-            background-color: #fee2e2 !important;
-            color: #dc2626 !important;
-            animation: shake 0.28s cubic-bezier(.36,.07,.19,.97) both;
+            background-color: var(--error-bg) !important;
+            color: var(--error-text) !important;
+            animation: shake 0.28s cubic-bezier(.36, .07, .19, .97) both;
         }
 
         .cell-selected.cell-error {
-            box-shadow: inset 0 0 0 2px #dc2626;
+            box-shadow: inset 0 0 0 2px var(--error-text);
         }
 
-        /* Notes (Pencil Marks) 3x3 Mini-Grid inside a cell */
+        /* Notes (Pencil Marks) 3x3 Mini-Grid */
         .notes-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -126,20 +346,295 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: clamp(0.52rem, 2.1vw, 0.7rem);
+            font-size: clamp(0.5rem, 2.1vw, 0.68rem);
             font-weight: 600;
             line-height: 1;
             color: #64748b;
-        }
-
-        .note-num.highlight-note {
-            color: #1d4ed8;
-            font-weight: 800;
-            background-color: #bfdbfe;
             border-radius: 3px;
         }
 
-        /* Animations */
+        .note-num.highlight-note {
+            background-color: var(--accent-selected);
+            color: var(--accent-hover);
+            font-weight: 800;
+        }
+
+        /* ============================================================================
+           BOTTOM CONTROLS & 1-9 TOUCH KEYPAD
+           ============================================================================ */
+        footer {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .tool-btn {
+            position: relative;
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 8px 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            cursor: pointer;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+            transition: transform 0.08s ease, border-color 0.15s ease, background-color 0.15s ease;
+        }
+
+        .tool-btn:active {
+            transform: scale(0.95);
+        }
+
+        .tool-btn.active-mode {
+            border-color: var(--accent);
+            background-color: #eff6ff;
+        }
+
+        .tool-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .tool-badge {
+            position: absolute;
+            top: 5px;
+            right: 6px;
+            font-size: 9px;
+            font-weight: 800;
+            padding: 1px 5px;
+            border-radius: 999px;
+            background-color: var(--bg-subtle-hover);
+            color: var(--text-secondary);
+        }
+
+        .tool-badge.on {
+            background-color: var(--accent);
+            color: #ffffff;
+        }
+
+        .tool-badge.hint {
+            background-color: var(--accent-soft);
+            color: var(--accent-hover);
+        }
+
+        .numpad-grid {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 5px;
+        }
+
+        .num-btn {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: 11px;
+            padding: 8px 2px 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(15, 23, 42, 0.04);
+            transition: transform 0.08s ease, background-color 0.12s ease, opacity 0.2s ease;
+        }
+
+        .num-btn:active {
+            transform: scale(0.92);
+            background-color: var(--accent-soft);
+        }
+
+        .num-btn.completed {
+            opacity: 0.35;
+            background-color: var(--bg-subtle);
+        }
+
+        .num-btn.active-highlight {
+            border-color: var(--accent);
+            background-color: var(--accent-soft);
+        }
+
+        .num-digit {
+            font-size: clamp(1.1rem, 4.8vw, 1.35rem);
+            font-weight: 700;
+            color: var(--accent);
+            line-height: 1.1;
+        }
+
+        .num-rem {
+            font-size: 9px;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* ============================================================================
+           MODALS & TOAST NOTIFICATION
+           ============================================================================ */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(3px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            z-index: 50;
+        }
+
+        .modal-backdrop.open {
+            display: flex;
+        }
+
+        .modal-card {
+            background-color: var(--bg-card);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 340px;
+            padding: 22px;
+            text-align: center;
+            box-shadow: 0 20px 35px -10px rgba(15, 23, 42, 0.25);
+            animation: popIn 0.22s ease-out forwards;
+        }
+
+        .modal-card.wide {
+            max-width: 440px;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .modal-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px;
+            font-size: 24px;
+            font-weight: 800;
+        }
+
+        .modal-icon.error {
+            background-color: var(--error-bg);
+            color: var(--error-text);
+        }
+
+        .modal-icon.success {
+            background-color: var(--success-bg);
+            color: var(--success-text);
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .modal-sub {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+
+        .win-stats {
+            display: flex;
+            justify-content: space-around;
+            background-color: var(--bg-subtle);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 18px;
+        }
+
+        .win-stat-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            font-weight: 700;
+        }
+
+        .win-stat-val {
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--text-primary);
+            text-transform: capitalize;
+            margin-top: 2px;
+        }
+
+        .modal-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .modal-actions .btn {
+            width: 100%;
+            padding: 11px;
+            font-size: 14px;
+            border-radius: 12px;
+        }
+
+        .code-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .code-textarea {
+            width: 100%;
+            height: 210px;
+            background-color: #0f172a;
+            color: #34d399;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 11px;
+            line-height: 1.45;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid #334155;
+            resize: none;
+            user-select: text;
+            -webkit-user-select: text;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 92px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #0f172a;
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: 999px;
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.25);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+            z-index: 60;
+            white-space: nowrap;
+        }
+
+        .toast.visible {
+            opacity: 1;
+        }
+
+        /* ============================================================================
+           ANIMATIONS
+           ============================================================================ */
         @keyframes shake {
             10%, 90% { transform: translate3d(-1px, 0, 0); }
             20%, 80% { transform: translate3d(2px, 0, 0); }
@@ -148,258 +643,204 @@
         }
 
         @keyframes popIn {
-            0% { transform: scale(0.7); opacity: 0; }
-            70% { transform: scale(1.1); }
+            0% { transform: scale(0.88); opacity: 0; }
             100% { transform: scale(1); opacity: 1; }
         }
 
-        .pop-in {
-            animation: popIn 0.2s ease-out forwards;
+        @keyframes autoFillPop {
+            0% { transform: scale(0.5); background-color: var(--accent-soft); opacity: 0; }
+            60% { transform: scale(1.15); background-color: var(--accent-selected); }
+            100% { transform: scale(1); opacity: 1; }
         }
 
-        /* Custom Scrollbar for Code Modal */
-        textarea::-webkit-scrollbar {
-            width: 6px;
-        }
-        textarea::-webkit-scrollbar-thumb {
-            background-color: #94a3b8;
-            border-radius: 9999px;
+        .cell-autofill {
+            animation: autoFillPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            color: var(--success-text) !important;
+            font-weight: 700;
         }
     </style>
-<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.pointer-events-none{pointer-events:none}.fixed{position:fixed}.absolute{position:absolute}.relative{position:relative}.inset-0{inset:0px}.bottom-24{bottom:6rem}.left-1\/2{left:50%}.right-2{right:0.5rem}.top-1\.5{top:0.375rem}.z-50{z-index:50}.mx-auto{margin-left:auto;margin-right:auto}.my-2{margin-top:0.5rem;margin-bottom:0.5rem}.mb-0\.5{margin-bottom:0.125rem}.mb-1{margin-bottom:0.25rem}.mb-3{margin-bottom:0.75rem}.mb-4{margin-bottom:1rem}.mb-5{margin-bottom:1.25rem}.mt-1{margin-top:0.25rem}.flex{display:flex}.grid{display:grid}.hidden{display:none}.h-12{height:3rem}.h-14{height:3.5rem}.h-3\.5{height:0.875rem}.h-4{height:1rem}.h-5{height:1.25rem}.h-56{height:14rem}.h-6{height:1.5rem}.h-8{height:2rem}.max-h-\[85vh\]{max-height:85vh}.min-h-screen{min-height:100vh}.w-12{width:3rem}.w-14{width:3.5rem}.w-3\.5{width:0.875rem}.w-4{width:1rem}.w-5{width:1.25rem}.w-6{width:1.5rem}.w-8{width:2rem}.w-full{width:100%}.w-px{width:1px}.max-w-\[440px\]{max-width:440px}.max-w-md{max-width:28rem}.max-w-xs{max-width:20rem}.flex-1{flex:1 1 0%}.-translate-x-1\/2{--tw-translate-x:-50%;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.resize-none{resize:none}.grid-cols-4{grid-template-columns:repeat(4, minmax(0, 1fr))}.grid-cols-9{grid-template-columns:repeat(9, minmax(0, 1fr))}.flex-col{flex-direction:column}.items-center{align-items:center}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.justify-around{justify-content:space-around}.gap-1{gap:0.25rem}.gap-1\.5{gap:0.375rem}.gap-2{gap:0.5rem}.gap-2\.5{gap:0.625rem}.gap-3{gap:0.75rem}.rounded-2xl{border-radius:1rem}.rounded-full{border-radius:9999px}.rounded-lg{border-radius:0.5rem}.rounded-md{border-radius:0.375rem}.rounded-xl{border-radius:0.75rem}.border{border-width:1px}.border-slate-100{--tw-border-opacity:1;border-color:rgb(241 245 249 / var(--tw-border-opacity, 1))}.border-slate-200{--tw-border-opacity:1;border-color:rgb(226 232 240 / var(--tw-border-opacity, 1))}.border-slate-200\/80{border-color:rgb(226 232 240 / 0.8)}.border-slate-700{--tw-border-opacity:1;border-color:rgb(51 65 85 / var(--tw-border-opacity, 1))}.bg-blue-100{--tw-bg-opacity:1;background-color:rgb(219 234 254 / var(--tw-bg-opacity, 1))}.bg-blue-600{--tw-bg-opacity:1;background-color:rgb(37 99 235 / var(--tw-bg-opacity, 1))}.bg-emerald-100{--tw-bg-opacity:1;background-color:rgb(209 250 229 / var(--tw-bg-opacity, 1))}.bg-red-100{--tw-bg-opacity:1;background-color:rgb(254 226 226 / var(--tw-bg-opacity, 1))}.bg-slate-100{--tw-bg-opacity:1;background-color:rgb(241 245 249 / var(--tw-bg-opacity, 1))}.bg-slate-200{--tw-bg-opacity:1;background-color:rgb(226 232 240 / var(--tw-bg-opacity, 1))}.bg-slate-200\/80{background-color:rgb(226 232 240 / 0.8)}.bg-slate-50{--tw-bg-opacity:1;background-color:rgb(248 250 252 / var(--tw-bg-opacity, 1))}.bg-slate-900{--tw-bg-opacity:1;background-color:rgb(15 23 42 / var(--tw-bg-opacity, 1))}.bg-slate-900\/60{background-color:rgb(15 23 42 / 0.6)}.bg-white{--tw-bg-opacity:1;background-color:rgb(255 255 255 / var(--tw-bg-opacity, 1))}.p-1{padding:0.25rem}.p-1\.5{padding:0.375rem}.p-3{padding:0.75rem}.p-4{padding:1rem}.p-5{padding:1.25rem}.p-6{padding:1.5rem}.px-1{padding-left:0.25rem;padding-right:0.25rem}.px-1\.5{padding-left:0.375rem;padding-right:0.375rem}.px-2\.5{padding-left:0.625rem;padding-right:0.625rem}.px-3{padding-left:0.75rem;padding-right:0.75rem}.px-3\.5{padding-left:0.875rem;padding-right:0.875rem}.px-4{padding-left:1rem;padding-right:1rem}.py-1{padding-top:0.25rem;padding-bottom:0.25rem}.py-1\.5{padding-top:0.375rem;padding-bottom:0.375rem}.py-2{padding-top:0.5rem;padding-bottom:0.5rem}.py-2\.5{padding-top:0.625rem;padding-bottom:0.625rem}.py-3{padding-top:0.75rem;padding-bottom:0.75rem}.text-center{text-align:center}.font-mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}.text-2xl{font-size:1.5rem;line-height:2rem}.text-\[11px\]{font-size:11px}.text-\[9px\]{font-size:9px}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:0.75rem;line-height:1rem}.text-\[10px\]{font-size:10px}.font-bold{font-weight:700}.font-extrabold{font-weight:800}.font-semibold{font-weight:600}.uppercase{text-transform:uppercase}.capitalize{text-transform:capitalize}.tabular-nums{--tw-numeric-spacing:tabular-nums;font-variant-numeric:var(--tw-ordinal) var(--tw-slashed-zero) var(--tw-numeric-figure) var(--tw-numeric-spacing) var(--tw-numeric-fraction)}.leading-relaxed{line-height:1.625}.leading-none{line-height:1}.tracking-tight{letter-spacing:-0.025em}.tracking-wider{letter-spacing:0.05em}.text-blue-600{--tw-text-opacity:1;color:rgb(37 99 235 / var(--tw-text-opacity, 1))}.text-blue-700{--tw-text-opacity:1;color:rgb(29 78 216 / var(--tw-text-opacity, 1))}.text-emerald-400{--tw-text-opacity:1;color:rgb(52 211 153 / var(--tw-text-opacity, 1))}.text-emerald-600{--tw-text-opacity:1;color:rgb(5 150 105 / var(--tw-text-opacity, 1))}.text-red-600{--tw-text-opacity:1;color:rgb(220 38 38 / var(--tw-text-opacity, 1))}.text-slate-400{--tw-text-opacity:1;color:rgb(148 163 184 / var(--tw-text-opacity, 1))}.text-slate-500{--tw-text-opacity:1;color:rgb(100 116 139 / var(--tw-text-opacity, 1))}.text-slate-600{--tw-text-opacity:1;color:rgb(71 85 105 / var(--tw-text-opacity, 1))}.text-slate-700{--tw-text-opacity:1;color:rgb(51 65 85 / var(--tw-text-opacity, 1))}.text-slate-800{--tw-text-opacity:1;color:rgb(30 41 59 / var(--tw-text-opacity, 1))}.text-slate-900{--tw-text-opacity:1;color:rgb(15 23 42 / var(--tw-text-opacity, 1))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.opacity-0{opacity:0}.shadow-2xl{--tw-shadow:0 25px 50px -12px rgb(0 0 0 / 0.25);--tw-shadow-colored:0 25px 50px -12px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-lg{--tw-shadow:0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-md{--tw-shadow:0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 4px 6px -1px var(--tw-shadow-color), 0 2px 4px -2px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-sm{--tw-shadow:0 1px 2px 0 rgb(0 0 0 / 0.05);--tw-shadow-colored:0 1px 2px 0 var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.transition{transition-property:color, background-color, border-color, fill, stroke, opacity, box-shadow, transform, filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-opacity{transition-property:opacity;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.duration-200{transition-duration:200ms}.hover\:bg-blue-700:hover{--tw-bg-opacity:1;background-color:rgb(29 78 216 / var(--tw-bg-opacity, 1))}.hover\:bg-slate-200:hover{--tw-bg-opacity:1;background-color:rgb(226 232 240 / var(--tw-bg-opacity, 1))}.hover\:bg-slate-300\/80:hover{background-color:rgb(203 213 225 / 0.8)}.hover\:bg-slate-50:hover{--tw-bg-opacity:1;background-color:rgb(248 250 252 / var(--tw-bg-opacity, 1))}.hover\:bg-blue-50:hover{--tw-bg-opacity:1;background-color:rgb(239 246 255 / var(--tw-bg-opacity, 1))}.hover\:text-slate-900:hover{--tw-text-opacity:1;color:rgb(15 23 42 / var(--tw-text-opacity, 1))}.focus\:outline-none:focus{outline:2px solid transparent;outline-offset:2px}.active\:scale-95:active{--tw-scale-x:.95;--tw-scale-y:.95;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}@media (min-width: 640px){.sm\:py-6{padding-top:1.5rem;padding-bottom:1.5rem}}</style></head>
-<body class="min-h-screen flex flex-col items-center justify-between py-3 px-3 sm:py-6">
+</head>
+<body>
 
-    <!-- Top Header: Title, Difficulty, Share/Code Button -->
-    <header class="w-full max-w-[440px] flex flex-col gap-2.5">
-        <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2">
-                <div class="w-8 h-8 rounded-xl bg-blue-600 text-white font-extrabold flex items-center justify-center shadow-sm text-lg">
-                    9
-                </div>
-                <h1 class="text-xl font-extrabold tracking-tight text-slate-900">Sudoku</h1>
+    <!-- Top Header: Brand, Share Code, New Game, Difficulty Tabs & Stats -->
+    <header class="container">
+        <div class="top-bar">
+            <div class="brand">
+                <div class="brand-badge">9</div>
+                <h1 class="brand-title">Sudoku</h1>
             </div>
-
-            <div class="flex items-center gap-2">
-                <!-- View/Copy Source Code Button -->
-                <button id="btn-share-code" class="px-3 py-1.5 rounded-xl bg-slate-200/80 hover:bg-slate-300/80 active:scale-95 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <div class="top-actions">
+                <button id="btn-share-code" class="btn btn-secondary" title="View or Copy Full HTML Code">
+                    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
                     </svg>
                     <span>Share Code</span>
                 </button>
-                <!-- New Game Button -->
-                <button id="btn-new-game" class="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-xs font-semibold shadow-sm transition">
-                    New Game
-                </button>
+                <button id="btn-new-game" class="btn btn-primary">New Game</button>
             </div>
         </div>
 
-        <!-- Sub-bar: Difficulty Selector & Game Stats (Mistakes + Timer) -->
-        <div class="flex items-center justify-between bg-white px-3 py-2 rounded-xl border border-slate-200/80 shadow-xs text-xs font-semibold">
-            <!-- Difficulty Pills -->
-            <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-lg" id="difficulty-selector">
-                <button data-diff="easy" class="diff-btn px-2.5 py-1 rounded-md transition bg-white text-blue-600 shadow-xs">Easy</button>
-                <button data-diff="medium" class="diff-btn px-2.5 py-1 rounded-md transition text-slate-600 hover:text-slate-900">Medium</button>
-                <button data-diff="hard" class="diff-btn px-2.5 py-1 rounded-md transition text-slate-600 hover:text-slate-900">Hard</button>
+        <div class="status-card">
+            <div class="diff-tabs" id="difficulty-selector">
+                <button data-diff="easy" class="diff-btn">Easy</button>
+                <button data-diff="medium" class="diff-btn">Medium</button>
+                <button data-diff="hard" class="diff-btn">Hard</button>
+                <button data-diff="expert" class="diff-btn">Expert</button>
+                <button data-diff="master" class="diff-btn active">Master</button>
             </div>
 
-            <!-- Mistakes Counter -->
-            <div class="flex items-center gap-1 text-slate-600">
-                <span>Mistakes:</span>
-                <span id="mistake-count" class="text-slate-900 font-bold">0/3</span>
-            </div>
-
-            <!-- Timer -->
-            <div class="flex items-center gap-1 text-slate-600 tabular-nums">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                <span id="timer-display">00:06</span>
+            <div class="stats-row">
+                <div>Mistakes: <span id="mistake-count" class="mistake-val">0/3</span></div>
+                <div class="autosave-pill">
+                    <span class="autosave-dot"></span>
+                    <span id="autosave-label">Auto-saved</span>
+                </div>
+                <div class="timer-box">
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span id="timer-display">00:02</span>
+                </div>
             </div>
         </div>
     </header>
 
-    <!-- Main 9x9 Sudoku Board -->
-    <main class="w-full max-w-[440px] my-2 flex flex-col items-center justify-center">
-        <div id="sudoku-grid" class="sudoku-grid" role="grid" aria-label="Sudoku Board"><div class="cell cell-related cell-selected" data-row="0" data-col="0" role="gridcell"></div><div class="cell cell-related" data-row="0" data-col="1" role="gridcell"></div><div class="cell cell-given cell-related" data-row="0" data-col="2" role="gridcell">5</div><div class="cell cell-related" data-row="0" data-col="3" role="gridcell"></div><div class="cell cell-given cell-related" data-row="0" data-col="4" role="gridcell">2</div><div class="cell cell-related" data-row="0" data-col="5" role="gridcell"></div><div class="cell cell-related" data-row="0" data-col="6" role="gridcell"></div><div class="cell cell-related" data-row="0" data-col="7" role="gridcell"></div><div class="cell cell-related" data-row="0" data-col="8" role="gridcell"></div><div class="cell cell-related" data-row="1" data-col="0" role="gridcell"></div><div class="cell cell-given cell-related" data-row="1" data-col="1" role="gridcell">2</div><div class="cell cell-given cell-related" data-row="1" data-col="2" role="gridcell">7</div><div class="cell cell-given" data-row="1" data-col="3" role="gridcell">3</div><div class="cell cell-given" data-row="1" data-col="4" role="gridcell">8</div><div class="cell cell-given" data-row="1" data-col="5" role="gridcell">9</div><div class="cell" data-row="1" data-col="6" role="gridcell"></div><div class="cell" data-row="1" data-col="7" role="gridcell"></div><div class="cell cell-given" data-row="1" data-col="8" role="gridcell">4</div><div class="cell cell-given cell-related" data-row="2" data-col="0" role="gridcell">1</div><div class="cell cell-given cell-related" data-row="2" data-col="1" role="gridcell">9</div><div class="cell cell-related" data-row="2" data-col="2" role="gridcell"></div><div class="cell cell-given" data-row="2" data-col="3" role="gridcell">4</div><div class="cell cell-given" data-row="2" data-col="4" role="gridcell">7</div><div class="cell cell-given" data-row="2" data-col="5" role="gridcell">5</div><div class="cell cell-given" data-row="2" data-col="6" role="gridcell">6</div><div class="cell cell-given" data-row="2" data-col="7" role="gridcell">2</div><div class="cell cell-given" data-row="2" data-col="8" role="gridcell">8</div><div class="cell cell-given cell-related" data-row="3" data-col="0" role="gridcell">8</div><div class="cell" data-row="3" data-col="1" role="gridcell"></div><div class="cell cell-given" data-row="3" data-col="2" role="gridcell">9</div><div class="cell cell-given" data-row="3" data-col="3" role="gridcell">6</div><div class="cell" data-row="3" data-col="4" role="gridcell"></div><div class="cell" data-row="3" data-col="5" role="gridcell"></div><div class="cell cell-given" data-row="3" data-col="6" role="gridcell">3</div><div class="cell" data-row="3" data-col="7" role="gridcell"></div><div class="cell cell-given" data-row="3" data-col="8" role="gridcell">2</div><div class="cell cell-given cell-related" data-row="4" data-col="0" role="gridcell">5</div><div class="cell" data-row="4" data-col="1" role="gridcell"></div><div class="cell" data-row="4" data-col="2" role="gridcell"></div><div class="cell cell-given" data-row="4" data-col="3" role="gridcell">8</div><div class="cell" data-row="4" data-col="4" role="gridcell"></div><div class="cell" data-row="4" data-col="5" role="gridcell"></div><div class="cell" data-row="4" data-col="6" role="gridcell"></div><div class="cell" data-row="4" data-col="7" role="gridcell"></div><div class="cell cell-given" data-row="4" data-col="8" role="gridcell">7</div><div class="cell cell-given cell-related" data-row="5" data-col="0" role="gridcell">7</div><div class="cell" data-row="5" data-col="1" role="gridcell"></div><div class="cell" data-row="5" data-col="2" role="gridcell"></div><div class="cell cell-given" data-row="5" data-col="3" role="gridcell">2</div><div class="cell" data-row="5" data-col="4" role="gridcell"></div><div class="cell cell-given" data-row="5" data-col="5" role="gridcell">1</div><div class="cell cell-given" data-row="5" data-col="6" role="gridcell">8</div><div class="cell cell-given" data-row="5" data-col="7" role="gridcell">6</div><div class="cell cell-given" data-row="5" data-col="8" role="gridcell">5</div><div class="cell cell-related" data-row="6" data-col="0" role="gridcell"></div><div class="cell cell-given" data-row="6" data-col="1" role="gridcell">5</div><div class="cell" data-row="6" data-col="2" role="gridcell"></div><div class="cell" data-row="6" data-col="3" role="gridcell"></div><div class="cell cell-given" data-row="6" data-col="4" role="gridcell">3</div><div class="cell cell-given" data-row="6" data-col="5" role="gridcell">8</div><div class="cell cell-given" data-row="6" data-col="6" role="gridcell">4</div><div class="cell cell-given" data-row="6" data-col="7" role="gridcell">7</div><div class="cell" data-row="6" data-col="8" role="gridcell"></div><div class="cell cell-related" data-row="7" data-col="0" role="gridcell"></div><div class="cell cell-given" data-row="7" data-col="1" role="gridcell">7</div><div class="cell cell-given" data-row="7" data-col="2" role="gridcell">6</div><div class="cell cell-given" data-row="7" data-col="3" role="gridcell">5</div><div class="cell" data-row="7" data-col="4" role="gridcell"></div><div class="cell cell-given" data-row="7" data-col="5" role="gridcell">4</div><div class="cell cell-given" data-row="7" data-col="6" role="gridcell">2</div><div class="cell" data-row="7" data-col="7" role="gridcell"></div><div class="cell" data-row="7" data-col="8" role="gridcell"></div><div class="cell cell-related" data-row="8" data-col="0" role="gridcell"></div><div class="cell cell-given" data-row="8" data-col="1" role="gridcell">4</div><div class="cell cell-given" data-row="8" data-col="2" role="gridcell">8</div><div class="cell cell-given" data-row="8" data-col="3" role="gridcell">7</div><div class="cell cell-given" data-row="8" data-col="4" role="gridcell">6</div><div class="cell" data-row="8" data-col="5" role="gridcell"></div><div class="cell cell-given" data-row="8" data-col="6" role="gridcell">5</div><div class="cell cell-given" data-row="8" data-col="7" role="gridcell">3</div><div class="cell cell-given" data-row="8" data-col="8" role="gridcell">1</div></div>
+    <!-- Main 9x9 Playable Sudoku Grid -->
+    <main>
+        <div id="sudoku-grid" class="sudoku-grid" role="grid" aria-label="Sudoku Board"><div class="cell cell-given cell-related" data-row="0" data-col="0" role="gridcell">4</div><div class="cell cell-given cell-related" data-row="0" data-col="1" role="gridcell">2</div><div class="cell cell-given cell-related" data-row="0" data-col="2" role="gridcell">3</div><div class="cell cell-user cell-selected" data-row="0" data-col="3" role="gridcell"></div><div class="cell cell-given cell-related" data-row="0" data-col="4" role="gridcell">7</div><div class="cell cell-user cell-related" data-row="0" data-col="5" role="gridcell"></div><div class="cell cell-user cell-related" data-row="0" data-col="6" role="gridcell"></div><div class="cell cell-user cell-related" data-row="0" data-col="7" role="gridcell"></div><div class="cell cell-given cell-related" data-row="0" data-col="8" role="gridcell">1</div><div class="cell cell-user" data-row="1" data-col="0" role="gridcell"></div><div class="cell cell-given" data-row="1" data-col="1" role="gridcell">6</div><div class="cell cell-user" data-row="1" data-col="2" role="gridcell"></div><div class="cell cell-user cell-related" data-row="1" data-col="3" role="gridcell"></div><div class="cell cell-user cell-related" data-row="1" data-col="4" role="gridcell"></div><div class="cell cell-user cell-related" data-row="1" data-col="5" role="gridcell"></div><div class="cell cell-user" data-row="1" data-col="6" role="gridcell"></div><div class="cell cell-user" data-row="1" data-col="7" role="gridcell"></div><div class="cell cell-user" data-row="1" data-col="8" role="gridcell"></div><div class="cell cell-given" data-row="2" data-col="0" role="gridcell">9</div><div class="cell cell-user" data-row="2" data-col="1" role="gridcell"></div><div class="cell cell-user" data-row="2" data-col="2" role="gridcell"></div><div class="cell cell-user cell-related" data-row="2" data-col="3" role="gridcell"></div><div class="cell cell-user cell-related" data-row="2" data-col="4" role="gridcell"></div><div class="cell cell-given cell-related" data-row="2" data-col="5" role="gridcell">1</div><div class="cell cell-user" data-row="2" data-col="6" role="gridcell"></div><div class="cell cell-given" data-row="2" data-col="7" role="gridcell">2</div><div class="cell cell-user" data-row="2" data-col="8" role="gridcell"></div><div class="cell cell-user" data-row="3" data-col="0" role="gridcell"></div><div class="cell cell-user" data-row="3" data-col="1" role="gridcell"></div><div class="cell cell-user" data-row="3" data-col="2" role="gridcell"></div><div class="cell cell-given cell-related" data-row="3" data-col="3" role="gridcell">6</div><div class="cell cell-given" data-row="3" data-col="4" role="gridcell">3</div><div class="cell cell-given" data-row="3" data-col="5" role="gridcell">9</div><div class="cell cell-given" data-row="3" data-col="6" role="gridcell">7</div><div class="cell cell-user" data-row="3" data-col="7" role="gridcell"></div><div class="cell cell-user" data-row="3" data-col="8" role="gridcell"></div><div class="cell cell-user" data-row="4" data-col="0" role="gridcell"></div><div class="cell cell-given" data-row="4" data-col="1" role="gridcell">5</div><div class="cell cell-user" data-row="4" data-col="2" role="gridcell"></div><div class="cell cell-user cell-related" data-row="4" data-col="3" role="gridcell"></div><div class="cell cell-user" data-row="4" data-col="4" role="gridcell"></div><div class="cell cell-user" data-row="4" data-col="5" role="gridcell"></div><div class="cell cell-user" data-row="4" data-col="6" role="gridcell"></div><div class="cell cell-user" data-row="4" data-col="7" role="gridcell"></div><div class="cell cell-user" data-row="4" data-col="8" role="gridcell"></div><div class="cell cell-user" data-row="5" data-col="0" role="gridcell"></div><div class="cell cell-user" data-row="5" data-col="1" role="gridcell"></div><div class="cell cell-user" data-row="5" data-col="2" role="gridcell"></div><div class="cell cell-user cell-related" data-row="5" data-col="3" role="gridcell"></div><div class="cell cell-given" data-row="5" data-col="4" role="gridcell">2</div><div class="cell cell-user" data-row="5" data-col="5" role="gridcell"></div><div class="cell cell-given" data-row="5" data-col="6" role="gridcell">6</div><div class="cell cell-user" data-row="5" data-col="7" role="gridcell"></div><div class="cell cell-given" data-row="5" data-col="8" role="gridcell">4</div><div class="cell cell-user" data-row="6" data-col="0" role="gridcell"></div><div class="cell cell-given" data-row="6" data-col="1" role="gridcell">3</div><div class="cell cell-user" data-row="6" data-col="2" role="gridcell"></div><div class="cell cell-given cell-related" data-row="6" data-col="3" role="gridcell">4</div><div class="cell cell-user" data-row="6" data-col="4" role="gridcell"></div><div class="cell cell-user" data-row="6" data-col="5" role="gridcell"></div><div class="cell cell-given" data-row="6" data-col="6" role="gridcell">2</div><div class="cell cell-user" data-row="6" data-col="7" role="gridcell"></div><div class="cell cell-user" data-row="6" data-col="8" role="gridcell"></div><div class="cell cell-given" data-row="7" data-col="0" role="gridcell">8</div><div class="cell cell-user" data-row="7" data-col="1" role="gridcell"></div><div class="cell cell-user" data-row="7" data-col="2" role="gridcell"></div><div class="cell cell-user cell-related" data-row="7" data-col="3" role="gridcell"></div><div class="cell cell-user" data-row="7" data-col="4" role="gridcell"></div><div class="cell cell-user" data-row="7" data-col="5" role="gridcell"></div><div class="cell cell-user" data-row="7" data-col="6" role="gridcell"></div><div class="cell cell-user" data-row="7" data-col="7" role="gridcell"></div><div class="cell cell-user" data-row="7" data-col="8" role="gridcell"></div><div class="cell cell-user" data-row="8" data-col="0" role="gridcell"></div><div class="cell cell-user" data-row="8" data-col="1" role="gridcell"></div><div class="cell cell-user" data-row="8" data-col="2" role="gridcell"></div><div class="cell cell-given cell-related" data-row="8" data-col="3" role="gridcell">3</div><div class="cell cell-user" data-row="8" data-col="4" role="gridcell"></div><div class="cell cell-user" data-row="8" data-col="5" role="gridcell"></div><div class="cell cell-user" data-row="8" data-col="6" role="gridcell"></div><div class="cell cell-given" data-row="8" data-col="7" role="gridcell">5</div><div class="cell cell-given" data-row="8" data-col="8" role="gridcell">6</div></div>
     </main>
 
-    <!-- Bottom Controls: Action Tools + 1-9 Touch Number Pad -->
-    <footer class="w-full max-w-[440px] flex flex-col gap-2.5">
-        <!-- Action Buttons Row: Undo, Erase, Notes (Pencil), Hint -->
-        <div class="grid grid-cols-4 gap-2">
-            <button id="btn-undo" class="flex flex-col items-center justify-center py-2 px-1 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 active:scale-95 transition shadow-2xs">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-slate-700 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+    <!-- Bottom Controls: Action Tools & 1-9 Touch Keypad -->
+    <footer class="container">
+        <div class="tools-grid">
+            <button id="btn-undo" class="tool-btn">
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#334155" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path>
                 </svg>
-                <span class="text-[11px] font-semibold text-slate-600">Undo</span>
+                <span class="tool-label">Undo</span>
             </button>
 
-            <button id="btn-erase" class="flex flex-col items-center justify-center py-2 px-1 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 active:scale-95 transition shadow-2xs">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-slate-700 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <button id="btn-erase" class="tool-btn">
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#334155" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                 </svg>
-                <span class="text-[11px] font-semibold text-slate-600">Erase</span>
+                <span class="tool-label">Erase</span>
             </button>
 
-            <button id="btn-notes" class="relative flex flex-col items-center justify-center py-2 px-1 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 active:scale-95 transition shadow-2xs">
-                <span id="notes-badge" class="absolute top-1.5 right-2 text-[9px] font-extrabold px-1.5 py-0.2 rounded-full bg-slate-200 text-slate-600">OFF</span>
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-slate-700 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <button id="btn-notes" class="tool-btn">
+                <span id="notes-badge" class="tool-badge">OFF</span>
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#334155" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
                 </svg>
-                <span class="text-[11px] font-semibold text-slate-600">Notes</span>
+                <span class="tool-label">Notes</span>
             </button>
 
-            <button id="btn-hint" class="relative flex flex-col items-center justify-center py-2 px-1 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 active:scale-95 transition shadow-2xs">
-                <span id="hint-badge" class="absolute top-1.5 right-2 text-[9px] font-extrabold px-1.5 py-0.2 rounded-full bg-blue-100 text-blue-700">3</span>
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-slate-700 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <button id="btn-hint" class="tool-btn">
+                <span id="hint-badge" class="tool-badge hint">3</span>
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#334155" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
                 </svg>
-                <span class="text-[11px] font-semibold text-slate-600">Hint</span>
+                <span class="tool-label">Hint</span>
             </button>
         </div>
 
-        <!-- 1-9 Touch Number Pad -->
-        <div id="number-pad" class="grid grid-cols-9 gap-1.5"><button class="num-btn flex flex-col items-center justify-center py-2.5 rounded-xl bg-white border border-slate-200 hover:bg-blue-50 active:scale-95 transition shadow-2xs" data-num="1">
-                        <span class="text-xl font-extrabold text-blue-600 leading-none">1</span>
-                        <span class="num-rem text-[10px] font-semibold text-slate-400 mt-1 leading-none">6</span>
-                    </button><button class="num-btn flex flex-col items-center justify-center py-2.5 rounded-xl bg-white border border-slate-200 hover:bg-blue-50 active:scale-95 transition shadow-2xs" data-num="2">
-                        <span class="text-xl font-extrabold text-blue-600 leading-none">2</span>
-                        <span class="num-rem text-[10px] font-semibold text-slate-400 mt-1 leading-none">3</span>
-                    </button><button class="num-btn flex flex-col items-center justify-center py-2.5 rounded-xl bg-white border border-slate-200 hover:bg-blue-50 active:scale-95 transition shadow-2xs" data-num="3">
-                        <span class="text-xl font-extrabold text-blue-600 leading-none">3</span>
-                        <span class="num-rem text-[10px] font-semibold text-slate-400 mt-1 leading-none">5</span>
-                    </button><button class="num-btn flex flex-col items-center justify-center py-2.5 rounded-xl bg-white border border-slate-200 hover:bg-blue-50 active:scale-95 transition shadow-2xs" data-num="4">
-                        <span class="text-xl font-extrabold text-blue-600 leading-none">4</span>
-                        <span class="num-rem text-[10px] font-semibold text-slate-400 mt-1 leading-none">4</span>
-                    </button><button class="num-btn flex flex-col items-center justify-center py-2.5 rounded-xl bg-white border border-slate-200 hover:bg-blue-50 active:scale-95 transition shadow-2xs" data-num="5">
-                        <span class="text-xl font-extrabold text-blue-600 leading-none">5</span>
-                        <span class="num-rem text-[10px] font-semibold text-slate-400 mt-1 leading-none">2</span>
-                    </button><button class="num-btn flex flex-col items-center justify-center py-2.5 rounded-xl bg-white border border-slate-200 hover:bg-blue-50 active:scale-95 transition shadow-2xs" data-num="6">
-                        <span class="text-xl font-extrabold text-blue-600 leading-none">6</span>
-                        <span class="num-rem text-[10px] font-semibold text-slate-400 mt-1 leading-none">4</span>
-                    </button><button class="num-btn flex flex-col items-center justify-center py-2.5 rounded-xl bg-white border border-slate-200 hover:bg-blue-50 active:scale-95 transition shadow-2xs" data-num="7">
-                        <span class="text-xl font-extrabold text-blue-600 leading-none">7</span>
-                        <span class="num-rem text-[10px] font-semibold text-slate-400 mt-1 leading-none">2</span>
-                    </button><button class="num-btn flex flex-col items-center justify-center py-2.5 rounded-xl bg-white border border-slate-200 hover:bg-blue-50 active:scale-95 transition shadow-2xs" data-num="8">
-                        <span class="text-xl font-extrabold text-blue-600 leading-none">8</span>
-                        <span class="num-rem text-[10px] font-semibold text-slate-400 mt-1 leading-none">2</span>
-                    </button><button class="num-btn flex flex-col items-center justify-center py-2.5 rounded-xl bg-white border border-slate-200 hover:bg-blue-50 active:scale-95 transition shadow-2xs" data-num="9">
-                        <span class="text-xl font-extrabold text-blue-600 leading-none">9</span>
-                        <span class="num-rem text-[10px] font-semibold text-slate-400 mt-1 leading-none">6</span>
-                    </button></div>
+        <div id="number-pad" class="numpad-grid"><button class="num-btn" data-num="1"><span class="num-digit">1</span><span class="num-rem" id="rem-1">7</span></button><button class="num-btn" data-num="2"><span class="num-digit">2</span><span class="num-rem" id="rem-2">5</span></button><button class="num-btn" data-num="3"><span class="num-digit">3</span><span class="num-rem" id="rem-3">5</span></button><button class="num-btn" data-num="4"><span class="num-digit">4</span><span class="num-rem" id="rem-4">6</span></button><button class="num-btn" data-num="5"><span class="num-digit">5</span><span class="num-rem" id="rem-5">7</span></button><button class="num-btn" data-num="6"><span class="num-digit">6</span><span class="num-rem" id="rem-6">5</span></button><button class="num-btn" data-num="7"><span class="num-digit">7</span><span class="num-rem" id="rem-7">7</span></button><button class="num-btn" data-num="8"><span class="num-digit">8</span><span class="num-rem" id="rem-8">8</span></button><button class="num-btn" data-num="9"><span class="num-digit">9</span><span class="num-rem" id="rem-9">7</span></button></div>
     </footer>
 
     <!-- Modal 1: Game Over (3 Mistakes) -->
-    <div id="modal-gameover" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-2xl max-w-xs w-full p-6 text-center shadow-2xl pop-in">
-            <div class="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto mb-3">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-            </div>
-            <h2 class="text-xl font-extrabold text-slate-900 mb-1">Game Over</h2>
-            <p class="text-sm text-slate-500 mb-5">You made 3 mistakes on this board.</p>
-            <div class="flex flex-col gap-2">
-                <button id="btn-second-chance" class="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-sm transition">
-                    Second Chance (Keep Playing)
-                </button>
-                <button id="btn-gameover-new" class="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm shadow-sm transition">
-                    Start New Game
-                </button>
+    <div id="modal-gameover" class="modal-backdrop">
+        <div class="modal-card">
+            <div class="modal-icon error">✕</div>
+            <h2 class="modal-title">Game Over</h2>
+            <p class="modal-sub">You reached 3 mistakes on this board.</p>
+            <div class="modal-actions">
+                <button id="btn-second-chance" class="btn btn-secondary">Second Chance (+3 Mistakes)</button>
+                <button id="btn-gameover-new" class="btn btn-primary">Start New Game</button>
             </div>
         </div>
     </div>
 
-    <!-- Modal 2: Victory Modal -->
-    <div id="modal-victory" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-2xl max-w-xs w-full p-6 text-center shadow-2xl pop-in">
-            <div class="w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-3 text-2xl">
-                🎉
-            </div>
-            <h2 class="text-2xl font-extrabold text-slate-900 mb-1">Puzzle Solved!</h2>
-            <p class="text-sm text-slate-500 mb-4">Awesome job clearing the board.</p>
-            <div class="bg-slate-50 rounded-xl p-3 mb-5 flex justify-around border border-slate-100">
+    <!-- Modal 2: Victory -->
+    <div id="modal-victory" class="modal-backdrop">
+        <div class="modal-card">
+            <div class="modal-icon success">🎉</div>
+            <h2 class="modal-title">Puzzle Solved!</h2>
+            <p class="modal-sub">Clean finish! Ready for the next challenge?</p>
+            <div class="win-stats">
                 <div>
-                    <div class="text-[11px] uppercase tracking-wider text-slate-400 font-bold">Difficulty</div>
-                    <div id="win-difficulty" class="text-sm font-extrabold text-slate-800 capitalize">Easy</div>
+                    <div class="win-stat-label">Difficulty</div>
+                    <div id="win-difficulty" class="win-stat-val">hard</div>
                 </div>
-                <div class="w-px bg-slate-200"></div>
                 <div>
-                    <div class="text-[11px] uppercase tracking-wider text-slate-400 font-bold">Time</div>
-                    <div id="win-time" class="text-sm font-extrabold text-blue-600 tabular-nums">00:00</div>
+                    <div class="win-stat-label">Time</div>
+                    <div id="win-time" class="win-stat-val" style="color: var(--accent);">10:15</div>
                 </div>
             </div>
-            <button id="btn-victory-new" class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-md transition">
-                Play Another Puzzle
+            <div class="modal-actions">
+                <button id="btn-victory-new" class="btn btn-primary">Play Another Puzzle</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 3: Share / Copy Full HTML Code -->
+    <div id="modal-code" class="modal-backdrop">
+        <div class="modal-card wide">
+            <div class="code-header">
+                <div>
+                    <h2 class="modal-title" style="font-size: 17px;">Share App Code</h2>
+                    <p class="modal-sub" style="margin-bottom: 0;">Single-file HTML app ready to send to friends.</p>
+                </div>
+                <button id="btn-close-code" class="btn btn-secondary" style="padding: 6px 10px;">✕</button>
+            </div>
+            <textarea id="source-code-box" class="code-textarea" readonly=""></textarea>
+            <button id="btn-copy-code" class="btn btn-primary" style="width: 100%; padding: 11px; font-size: 14px;">
+                <span id="copy-btn-text">Copy Full HTML Code</span>
             </button>
         </div>
     </div>
 
-    <!-- Modal 3: View / Copy Full HTML Code Modal (For Sharing on Mobile) -->
-    <div id="modal-code" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-2xl max-w-md w-full p-5 flex flex-col gap-3 shadow-2xl pop-in max-h-[85vh]">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h2 class="text-lg font-extrabold text-slate-900">Share App Code</h2>
-                    <p class="text-xs text-slate-500">Copy this single HTML file to share with friends.</p>
-                </div>
-                <button id="btn-close-code" class="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
-            </div>
-
-            <textarea id="source-code-box" readonly="" class="w-full h-56 p-3 rounded-xl bg-slate-900 text-emerald-400 font-mono text-[11px] leading-relaxed border border-slate-700 focus:outline-none resize-none"></textarea>
-
-            <div class="flex items-center gap-2">
-                <button id="btn-copy-code" class="flex-1 py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-sm shadow-sm flex items-center justify-center gap-2 transition">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path>
-                    </svg>
-                    <span id="copy-btn-text">Copy Full HTML Code</span>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Custom Toast Notification (No alert() used anywhere) -->
-    <div id="toast" class="fixed bottom-24 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-xs font-semibold px-4 py-2 rounded-full shadow-lg opacity-0 pointer-events-none transition-opacity duration-200 z-50">
-        Copied to clipboard!
-    </div>
+    <!-- Toast Banner -->
+    <div id="toast" class="toast">Auto-completing final 9 cells!</div>
 
     <script>
         /**
          * ============================================================================
-         * SUDOKU ENGINE & MOBILE UI CONTROLLER
+         * STANDALONE MOBILE SUDOKU ENGINE & UI CONTROLLER
          * ============================================================================
          */
         class SudokuApp {
             constructor() {
-                // Game State
-                this.solution = [];       // 9x9 solved grid
-                this.initialBoard = [];   // 9x9 starting puzzle (0 = empty)
-                this.board = [];          // 9x9 current user board
-                this.notes = [];          // 9x9 array of Sets for pencil marks
-                this.history = [];        // Undo stack
-                this.selectedCell = null; // { row, col }
-                this.difficulty = 'easy'; // 'easy' | 'medium' | 'hard'
+                // Core 9x9 state matrices
+                this.solution = [];
+                this.initialBoard = [];
+                this.board = [];
+                this.notes = [];
+                this.history = [];
+
+                // Active selection & mode flags
+                this.selectedCell = null;
+                this.highlightedNumber = 0;
+                this.difficulty = 'hard'; // Default to Hard difficulty
                 this.mistakes = 0;
                 this.maxMistakes = 3;
                 this.hintsRemaining = 3;
                 this.notesMode = false;
                 this.isGameOver = false;
+                this.isAutoCompleting = false;
 
-                // Timer State
+                // Timer & Storage
                 this.secondsElapsed = 0;
                 this.timerInterval = null;
+                this.storageKey = 'sudoku_mobile_autosave_v2';
 
-                // Difficulty configuration (number of cells to remove out of 81)
+                // Clues removed per difficulty (81 - holes = given clues)
+                // Easy: 42 givens, Medium: 34 givens, Hard: 28 givens, Expert: 25 givens, Master: 22 givens
                 this.holesByDifficulty = {
-                    easy: 34,
-                    medium: 45,
-                    hard: 53
+                    easy: 39,
+                    medium: 47,
+                    hard: 53,
+                    expert: 56,
+                    master: 59
                 };
 
                 // Cache DOM elements
@@ -410,16 +851,20 @@
                 this.notesBadgeEl = document.getElementById('notes-badge');
                 this.hintBadgeEl = document.getElementById('hint-badge');
 
+                // Build static grid cells and keypad buttons immediately
                 this.initDOM();
                 this.bindEvents();
-                this.startNewGame('easy');
+
+                // Restore saved in-progress game or launch a fresh Hard game immediately
+                if (!this.loadSavedGame()) {
+                    this.startNewGame('hard');
+                }
             }
 
             /**
-             * Build the static 81 cells and 1-9 number pad buttons once
+             * Build the 81 cell DOM nodes and 1-9 keypad buttons once
              */
             initDOM() {
-                // Create 81 grid cells
                 this.gridEl.innerHTML = '';
                 for (let r = 0; r < 9; r++) {
                     for (let c = 0; c < 9; c++) {
@@ -433,67 +878,61 @@
                     }
                 }
 
-                // Create 1-9 number pad buttons
                 this.numPadEl.innerHTML = '';
                 for (let num = 1; num <= 9; num++) {
                     const btn = document.createElement('button');
-                    btn.className = 'num-btn flex flex-col items-center justify-center py-2.5 rounded-xl bg-white border border-slate-200 hover:bg-blue-50 active:scale-95 transition shadow-2xs';
+                    btn.className = 'num-btn';
                     btn.dataset.num = num;
-                    btn.innerHTML = `
-                        <span class="text-xl font-extrabold text-blue-600 leading-none">${num}</span>
-                        <span class="num-rem text-[10px] font-semibold text-slate-400 mt-1 leading-none">9</span>
-                    `;
+                    btn.innerHTML = `<span class="num-digit">${num}</span><span class="num-rem" id="rem-${num}">9</span>`;
                     btn.addEventListener('click', () => this.handleNumberInput(num));
                     this.numPadEl.appendChild(btn);
                 }
             }
 
             /**
-             * Bind UI buttons & optional desktop keyboard support
+             * Attach event listeners for all buttons, modals, and keyboard shortcuts
              */
             bindEvents() {
-                // Difficulty buttons
                 document.querySelectorAll('.diff-btn').forEach(btn => {
                     btn.addEventListener('click', (e) => {
-                        const diff = e.currentTarget.dataset.diff;
-                        this.startNewGame(diff);
+                        this.startNewGame(e.currentTarget.dataset.diff);
                     });
                 });
 
-                // Top & Action controls
                 document.getElementById('btn-new-game').addEventListener('click', () => this.startNewGame(this.difficulty));
                 document.getElementById('btn-undo').addEventListener('click', () => this.undo());
                 document.getElementById('btn-erase').addEventListener('click', () => this.eraseCell());
                 document.getElementById('btn-notes').addEventListener('click', () => this.toggleNotesMode());
                 document.getElementById('btn-hint').addEventListener('click', () => this.useHint());
 
-                // Game Over Modal buttons
+                // Game Over modal controls
                 document.getElementById('btn-second-chance').addEventListener('click', () => {
                     this.isGameOver = false;
                     this.maxMistakes += 3;
                     this.updateMistakesUI();
                     this.hideModal('modal-gameover');
                     this.startTimer();
+                    this.saveGameState();
                 });
                 document.getElementById('btn-gameover-new').addEventListener('click', () => {
                     this.hideModal('modal-gameover');
                     this.startNewGame(this.difficulty);
                 });
 
-                // Victory Modal button
+                // Victory modal control
                 document.getElementById('btn-victory-new').addEventListener('click', () => {
                     this.hideModal('modal-victory');
                     this.startNewGame(this.difficulty);
                 });
 
-                // Share / Copy Code Modal buttons
+                // Share Code modal controls
                 document.getElementById('btn-share-code').addEventListener('click', () => this.openCodeModal());
                 document.getElementById('btn-close-code').addEventListener('click', () => this.hideModal('modal-code'));
                 document.getElementById('btn-copy-code').addEventListener('click', () => this.copySourceCode());
 
-                // Keyboard support if user connects a physical keyboard
+                // Optional physical keyboard navigation
                 document.addEventListener('keydown', (e) => {
-                    if (this.isGameOver) return;
+                    if (this.isGameOver || this.isAutoCompleting) return;
                     if (e.key >= '1' && e.key <= '9') {
                         this.handleNumberInput(parseInt(e.key, 10));
                     } else if (e.key === 'Backspace' || e.key === 'Delete') {
@@ -513,13 +952,13 @@
 
             /**
              * ========================================================================
-             * SUDOKU GENERATOR (Randomized Backtracking Algorithm)
+             * FAST SUDOKU GENERATOR & UNIQUE-SOLUTION VALIDATOR
              * ========================================================================
              */
             generateSolvedBoard() {
                 const grid = Array.from({ length: 9 }, () => Array(9).fill(0));
 
-                // Fill the three diagonal 3x3 boxes first (they are completely independent)
+                // Populate the 3 independent diagonal 3x3 boxes first
                 for (let box = 0; box < 9; box += 3) {
                     const nums = this.shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9]);
                     let idx = 0;
@@ -530,7 +969,6 @@
                     }
                 }
 
-                // Solve the rest of the board using randomized backtracking
                 this.solveBacktrack(grid);
                 return grid;
             }
@@ -554,13 +992,51 @@
                 return true;
             }
 
-            isValidPlacement(grid, row, col, num) {
-                // Check row & column
-                for (let i = 0; i < 9; i++) {
-                    if (grid[row][i] === num) return false;
-                    if (grid[i][col] === num) return false;
+            /**
+             * Fast MRV-guided solver that stops as soon as 2 solutions are found
+             */
+            countSolutions(grid, limit = 2) {
+                let emptyRow = -1;
+                let emptyCol = -1;
+                let minCandidates = 10;
+                let bestNums = [];
+
+                for (let r = 0; r < 9; r++) {
+                    for (let c = 0; c < 9; c++) {
+                        if (grid[r][c] === 0) {
+                            const candidates = [];
+                            for (let num = 1; num <= 9; num++) {
+                                if (this.isValidPlacement(grid, r, c, num)) {
+                                    candidates.push(num);
+                                }
+                            }
+                            if (candidates.length === 0) return 0;
+                            if (candidates.length < minCandidates) {
+                                minCandidates = candidates.length;
+                                bestNums = candidates;
+                                emptyRow = r;
+                                emptyCol = c;
+                            }
+                        }
+                    }
                 }
-                // Check 3x3 box
+
+                if (emptyRow === -1) return 1;
+
+                let total = 0;
+                for (const num of bestNums) {
+                    grid[emptyRow][emptyCol] = num;
+                    total += this.countSolutions(grid, limit);
+                    grid[emptyRow][emptyCol] = 0;
+                    if (total >= limit) return total;
+                }
+                return total;
+            }
+
+            isValidPlacement(grid, row, col, num) {
+                for (let i = 0; i < 9; i++) {
+                    if (grid[row][i] === num || grid[i][col] === num) return false;
+                }
                 const boxStartRow = Math.floor(row / 3) * 3;
                 const boxStartCol = Math.floor(col / 3) * 3;
                 for (let r = 0; r < 3; r++) {
@@ -581,27 +1057,34 @@
             }
 
             /**
-             * Initialize a fresh game at the chosen difficulty
+             * Start a brand-new game at the chosen difficulty with unique-solution guarantee
              */
             startNewGame(difficulty) {
-                this.difficulty = difficulty;
+                this.difficulty = this.holesByDifficulty[difficulty] ? difficulty : 'hard';
                 this.updateDifficultyUI();
 
-                // Generate valid solved board and carve out holes
                 this.solution = this.generateSolvedBoard();
                 this.initialBoard = this.solution.map(row => [...row]);
 
-                const holes = this.holesByDifficulty[difficulty] || 34;
+                const targetHoles = this.holesByDifficulty[this.difficulty];
                 const positions = this.shuffle(Array.from({ length: 81 }, (_, i) => i));
 
-                for (let i = 0; i < holes; i++) {
+                let removed = 0;
+                for (let i = 0; i < positions.length && removed < targetHoles; i++) {
                     const pos = positions[i];
                     const r = Math.floor(pos / 9);
                     const c = pos % 9;
+                    const backup = this.initialBoard[r][c];
                     this.initialBoard[r][c] = 0;
+
+                    const testGrid = this.initialBoard.map(row => [...row]);
+                    if (this.countSolutions(testGrid, 2) !== 1) {
+                        this.initialBoard[r][c] = backup;
+                    } else {
+                        removed++;
+                    }
                 }
 
-                // Reset game state
                 this.board = this.initialBoard.map(row => [...row]);
                 this.notes = Array.from({ length: 9 }, () => Array.from({ length: 9 }, () => new Set()));
                 this.history = [];
@@ -609,9 +1092,11 @@
                 this.maxMistakes = 3;
                 this.hintsRemaining = 3;
                 this.isGameOver = false;
+                this.isAutoCompleting = false;
                 this.selectedCell = null;
+                this.highlightedNumber = 0;
 
-                // Auto-select first empty cell for convenience
+                // Pre-select the first empty cell
                 outer: for (let r = 0; r < 9; r++) {
                     for (let c = 0; c < 9; c++) {
                         if (this.board[r][c] === 0) {
@@ -625,32 +1110,113 @@
                 this.updateHintUI();
                 this.renderBoard();
                 this.resetAndStartTimer();
+                this.saveGameState();
             }
 
             /**
              * ========================================================================
-             * USER INTERACTION & GAME LOGIC
+             * BOARD RENDERING (SMART HIGHLIGHTS, MISTAKES, NOTES & KEYPAD COUNTS)
+             * ========================================================================
+             */
+            renderBoard() {
+                const selRow = this.selectedCell ? this.selectedCell.row : -1;
+                const selCol = this.selectedCell ? this.selectedCell.col : -1;
+                const selBoxRow = selRow >= 0 ? Math.floor(selRow / 3) * 3 : -1;
+                const selBoxCol = selCol >= 0 ? Math.floor(selCol / 3) * 3 : -1;
+
+                // Track how many times each digit 1-9 is correctly placed
+                const placedCounts = Array(10).fill(0);
+
+                for (let r = 0; r < 9; r++) {
+                    for (let c = 0; c < 9; c++) {
+                        const cellEl = this.gridEl.children[r * 9 + c];
+                        const val = this.board[r][c];
+                        const isGiven = this.initialBoard[r][c] !== 0;
+                        const isSelected = r === selRow && c === selCol;
+                        const isError = val !== 0 && val !== this.solution[r][c];
+
+                        if (val !== 0 && !isError) {
+                            placedCounts[val]++;
+                        }
+
+                        // Check if in same row, column, or 3x3 box as selected cell
+                        const inSameBox = selRow >= 0 &&
+                            Math.floor(r / 3) * 3 === selBoxRow &&
+                            Math.floor(c / 3) * 3 === selBoxCol;
+                        const isRelated = selRow >= 0 && !isSelected && (r === selRow || c === selCol || inSameBox);
+                        const isSameNum = this.highlightedNumber !== 0 && val === this.highlightedNumber;
+
+                        // Compose cell classes
+                        let cls = 'cell';
+                        cls += isGiven ? ' cell-given' : ' cell-user';
+                        if (isRelated) cls += ' cell-related';
+                        if (isSameNum) cls += ' cell-same-num';
+                        if (isSelected) cls += ' cell-selected';
+                        if (isError) cls += ' cell-error';
+                        cellEl.className = cls;
+
+                        // Render cell number or 3x3 pencil notes mini-grid
+                        if (val !== 0) {
+                            cellEl.textContent = val;
+                        } else if (this.notes[r][c].size > 0) {
+                            let notesHTML = '<div class="notes-grid">';
+                            for (let n = 1; n <= 9; n++) {
+                                if (this.notes[r][c].has(n)) {
+                                    const hl = (this.highlightedNumber === n) ? ' highlight-note' : '';
+                                    notesHTML += `<span class="note-num${hl}">${n}</span>`;
+                                } else {
+                                    notesHTML += '<span class="note-num"></span>';
+                                }
+                            }
+                            notesHTML += '</div>';
+                            cellEl.innerHTML = notesHTML;
+                        } else {
+                            cellEl.textContent = '';
+                        }
+                    }
+                }
+
+                // Update 1-9 keypad remaining counts & completed states
+                for (let num = 1; num <= 9; num++) {
+                    const remaining = Math.max(0, 9 - placedCounts[num]);
+                    const remEl = document.getElementById(`rem-${num}`);
+                    const btnEl = this.numPadEl.children[num - 1];
+                    if (remEl) remEl.textContent = remaining === 0 ? '✓' : remaining;
+                    if (btnEl) {
+                        btnEl.classList.toggle('completed', remaining === 0);
+                        btnEl.classList.toggle('active-highlight', this.highlightedNumber === num && remaining > 0);
+                    }
+                }
+            }
+
+            /**
+             * ========================================================================
+             * PLAYER INTERACTIONS & GAME FLOW
              * ========================================================================
              */
             selectCell(row, col) {
-                if (this.isGameOver) return;
+                if (this.isGameOver || this.isAutoCompleting) return;
                 this.selectedCell = { row, col };
+                this.highlightedNumber = this.board[row][col] || 0;
                 this.renderBoard();
+                this.saveGameState();
             }
 
             handleNumberInput(num) {
-                if (this.isGameOver || !this.selectedCell) return;
+                if (this.isGameOver || this.isAutoCompleting) return;
+
+                // If no editable cell is selected, highlight all instances of `num` on the board
+                if (!this.selectedCell || this.initialBoard[this.selectedCell.row][this.selectedCell.col] !== 0) {
+                    this.highlightedNumber = (this.highlightedNumber === num) ? 0 : num;
+                    this.renderBoard();
+                    return;
+                }
+
                 const { row, col } = this.selectedCell;
-
-                // Do not overwrite pre-filled cells
-                if (this.initialBoard[row][col] !== 0) return;
-
-                // Save state for Undo
                 this.pushHistory();
 
                 // Pencil / Notes Mode
                 if (this.notesMode) {
-                    // Only allow notes on empty or incorrect cells
                     if (this.board[row][col] === this.solution[row][col]) return;
                     this.board[row][col] = 0;
 
@@ -659,29 +1225,33 @@
                     } else {
                         this.notes[row][col].add(num);
                     }
+                    this.highlightedNumber = num;
                     this.renderBoard();
+                    this.saveGameState();
                     return;
                 }
 
-                // Normal Number Input Mode
-                // If tapping the exact same number already in the cell, toggle it off
+                // Toggle off if tapping the exact same digit already entered
                 if (this.board[row][col] === num) {
                     this.board[row][col] = 0;
+                    this.highlightedNumber = 0;
                     this.renderBoard();
+                    this.saveGameState();
                     return;
                 }
 
                 this.board[row][col] = num;
                 this.notes[row][col].clear();
+                this.highlightedNumber = num;
 
-                // Validate against solved board
                 if (num === this.solution[row][col]) {
-                    // Correct entry! Automatically remove matching notes from peer cells
+                    // Valid placement -> clean matching notes from row, col & box
                     this.clearPeerNotes(row, col, num);
                     this.renderBoard();
-                    this.checkVictory();
+                    this.saveGameState();
+                    this.checkAutoCompleteOrVictory();
                 } else {
-                    // Incorrect entry -> Mistake! Highlighted in red via renderBoard()
+                    // Mistake -> highlight cell in red and increment mistake count
                     this.mistakes++;
                     this.updateMistakesUI();
                     this.renderBoard();
@@ -689,7 +1259,10 @@
                     if (this.mistakes >= this.maxMistakes) {
                         this.isGameOver = true;
                         this.stopTimer();
-                        setTimeout(() => this.showModal('modal-gameover'), 350);
+                        this.saveGameState();
+                        setTimeout(() => this.showModal('modal-gameover'), 340);
+                    } else {
+                        this.saveGameState();
                     }
                 }
             }
@@ -709,7 +1282,7 @@
             }
 
             eraseCell() {
-                if (this.isGameOver || !this.selectedCell) return;
+                if (this.isGameOver || this.isAutoCompleting || !this.selectedCell) return;
                 const { row, col } = this.selectedCell;
                 if (this.initialBoard[row][col] !== 0) return;
                 if (this.board[row][col] === 0 && this.notes[row][col].size === 0) return;
@@ -717,29 +1290,32 @@
                 this.pushHistory();
                 this.board[row][col] = 0;
                 this.notes[row][col].clear();
+                this.highlightedNumber = 0;
                 this.renderBoard();
+                this.saveGameState();
             }
 
             toggleNotesMode() {
                 this.notesMode = !this.notesMode;
+                const btnNotes = document.getElementById('btn-notes');
                 if (this.notesMode) {
                     this.notesBadgeEl.textContent = 'ON';
-                    this.notesBadgeEl.className = 'absolute top-1.5 right-2 text-[9px] font-extrabold px-1.5 py-0.2 rounded-full bg-blue-600 text-white';
-                    document.getElementById('btn-notes').classList.add('border-blue-500', 'bg-blue-50/50');
+                    this.notesBadgeEl.classList.add('on');
+                    btnNotes.classList.add('active-mode');
                 } else {
                     this.notesBadgeEl.textContent = 'OFF';
-                    this.notesBadgeEl.className = 'absolute top-1.5 right-2 text-[9px] font-extrabold px-1.5 py-0.2 rounded-full bg-slate-200 text-slate-600';
-                    document.getElementById('btn-notes').classList.remove('border-blue-500', 'bg-blue-50/50');
+                    this.notesBadgeEl.classList.remove('on');
+                    btnNotes.classList.remove('active-mode');
                 }
             }
 
             useHint() {
-                if (this.isGameOver || this.hintsRemaining <= 0) {
-                    if (this.hintsRemaining <= 0) this.showToast('No hints remaining!');
+                if (this.isGameOver || this.isAutoCompleting) return;
+                if (this.hintsRemaining <= 0) {
+                    this.showToast('No hints left for this puzzle!');
                     return;
                 }
 
-                // Prefer currently selected cell if empty/wrong, otherwise pick a random unsolved cell
                 let target = null;
                 if (this.selectedCell) {
                     const { row, col } = this.selectedCell;
@@ -766,15 +1342,17 @@
                 const correctVal = this.solution[row][col];
 
                 this.board[row][col] = correctVal;
-                this.initialBoard[row][col] = correctVal; // Lock hinted cell
+                this.initialBoard[row][col] = correctVal;
                 this.notes[row][col].clear();
                 this.clearPeerNotes(row, col, correctVal);
 
                 this.hintsRemaining--;
                 this.updateHintUI();
                 this.selectedCell = { row, col };
+                this.highlightedNumber = correctVal;
                 this.renderBoard();
-                this.checkVictory();
+                this.saveGameState();
+                this.checkAutoCompleteOrVictory();
             }
 
             pushHistory() {
@@ -782,143 +1360,163 @@
                     board: this.board.map(r => [...r]),
                     notes: this.notes.map(r => r.map(set => new Set(set)))
                 });
-                if (this.history.length > 30) this.history.shift();
+                if (this.history.length > 35) this.history.shift();
             }
 
             undo() {
-                if (this.isGameOver || this.history.length === 0) return;
+                if (this.isGameOver || this.isAutoCompleting || this.history.length === 0) return;
                 const prev = this.history.pop();
                 this.board = prev.board;
                 this.notes = prev.notes;
+                this.highlightedNumber = this.selectedCell ? (this.board[this.selectedCell.row][this.selectedCell.col] || 0) : 0;
                 this.renderBoard();
+                this.saveGameState();
             }
 
-            checkVictory() {
+            /**
+             * Auto-fills the final <= 9 cells once 72 cells are solved, then triggers victory
+             */
+            checkAutoCompleteOrVictory() {
+                const remainingCells = [];
                 for (let r = 0; r < 9; r++) {
                     for (let c = 0; c < 9; c++) {
-                        if (this.board[r][c] !== this.solution[r][c]) return false;
+                        if (this.board[r][c] !== this.solution[r][c]) {
+                            remainingCells.push({ row: r, col: c });
+                        }
                     }
                 }
+
+                if (remainingCells.length === 0) {
+                    this.triggerVictory();
+                    return;
+                }
+
+                if (remainingCells.length <= 9 && !this.isAutoCompleting) {
+                    this.isAutoCompleting = true;
+                    this.stopTimer();
+                    this.showToast(`Auto-completing final ${remainingCells.length} cells!`);
+
+                    remainingCells.forEach((cellPos, idx) => {
+                        setTimeout(() => {
+                            const { row, col } = cellPos;
+                            const correctVal = this.solution[row][col];
+                            this.board[row][col] = correctVal;
+                            this.notes[row][col].clear();
+                            this.selectedCell = { row, col };
+                            this.highlightedNumber = correctVal;
+                            this.renderBoard();
+
+                            const cellEl = this.gridEl.children[row * 9 + col];
+                            if (cellEl) cellEl.classList.add('cell-autofill');
+
+                            if (idx === remainingCells.length - 1) {
+                                setTimeout(() => {
+                                    this.isAutoCompleting = false;
+                                    this.triggerVictory();
+                                }, 420);
+                            }
+                        }, idx * 105);
+                    });
+                }
+            }
+
+            triggerVictory() {
                 this.isGameOver = true;
                 this.stopTimer();
+                this.saveGameState();
                 document.getElementById('win-difficulty').textContent = this.difficulty;
                 document.getElementById('win-time').textContent = this.formatTime(this.secondsElapsed);
-                setTimeout(() => this.showModal('modal-victory'), 300);
-                return true;
+                setTimeout(() => this.showModal('modal-victory'), 280);
             }
 
             /**
              * ========================================================================
-             * RENDERING & SMART HIGHLIGHTING
+             * SANDBOX-SAFE AUTO-SAVE & RESTORE (localStorage wrapped in try/catch)
              * ========================================================================
              */
-            renderBoard() {
-                const cells = this.gridEl.children;
-                const selRow = this.selectedCell ? this.selectedCell.row : -1;
-                const selCol = this.selectedCell ? this.selectedCell.col : -1;
-                const selectedValue = (selRow !== -1 && selCol !== -1) ? this.board[selRow][selCol] : 0;
-
-                const selBoxRow = selRow !== -1 ? Math.floor(selRow / 3) : -1;
-                const selBoxCol = selCol !== -1 ? Math.floor(selCol / 3) : -1;
-
-                // Track counts of correctly placed numbers for the bottom number pad
-                const placedCounts = Array(10).fill(0);
-
-                for (let r = 0; r < 9; r++) {
-                    for (let c = 0; c < 9; c++) {
-                        const idx = r * 9 + c;
-                        const cellEl = cells[idx];
-                        const val = this.board[r][c];
-                        const isGiven = this.initialBoard[r][c] !== 0;
-                        const isWrong = val !== 0 && val !== this.solution[r][c];
-
-                        if (val !== 0 && !isWrong) {
-                            placedCounts[val]++;
-                        }
-
-                        // Reset classes
-                        cellEl.className = 'cell';
-
-                        // Base font styling
-                        if (isGiven) {
-                            cellEl.classList.add('cell-given');
-                        } else if (val !== 0) {
-                            cellEl.classList.add('cell-user');
-                        }
-
-                        // Smart Highlighting:
-                        // 1. Selected cell
-                        const isSelected = (r === selRow && c === selCol);
-                        // 2. Same Row, Column, or 3x3 Box
-                        const isRelated = selRow !== -1 && (
-                            r === selRow ||
-                            c === selCol ||
-                            (Math.floor(r / 3) === selBoxRow && Math.floor(c / 3) === selBoxCol)
-                        );
-                        // 3. Same Number anywhere on the grid
-                        const isSameNum = selectedValue !== 0 && val === selectedValue;
-
-                        if (isRelated) cellEl.classList.add('cell-related');
-                        if (isSameNum) cellEl.classList.add('cell-same-num');
-                        if (isSelected) cellEl.classList.add('cell-selected');
-                        if (isWrong) cellEl.classList.add('cell-error');
-
-                        // Cell Content (Number or 3x3 Pencil Notes)
-                        if (val !== 0) {
-                            cellEl.textContent = val;
-                        } else if (this.notes[r][c].size > 0) {
-                            let notesHTML = '<div class="notes-grid">';
-                            for (let n = 1; n <= 9; n++) {
-                                const hasNote = this.notes[r][c].has(n);
-                                const highlightClass = (hasNote && selectedValue === n) ? 'highlight-note' : '';
-                                notesHTML += `<span class="note-num ${highlightClass}">${hasNote ? n : ''}</span>`;
-                            }
-                            notesHTML += '</div>';
-                            cellEl.innerHTML = notesHTML;
-                        } else {
-                            cellEl.textContent = '';
-                        }
-                    }
+            saveGameState() {
+                try {
+                    const payload = {
+                        solution: this.solution,
+                        initialBoard: this.initialBoard,
+                        board: this.board,
+                        notes: this.notes.map(row => row.map(set => Array.from(set))),
+                        history: this.history.map(item => ({
+                            board: item.board,
+                            notes: item.notes.map(row => row.map(set => Array.from(set)))
+                        })),
+                        selectedCell: this.selectedCell,
+                        difficulty: this.difficulty,
+                        mistakes: this.mistakes,
+                        maxMistakes: this.maxMistakes,
+                        hintsRemaining: this.hintsRemaining,
+                        secondsElapsed: this.secondsElapsed,
+                        isGameOver: this.isGameOver
+                    };
+                    window.localStorage.setItem(this.storageKey, JSON.stringify(payload));
+                } catch (err) {
+                    // Ignore storage errors inside restricted sandboxed iframes
                 }
+            }
 
-                // Update remaining counts on the 1-9 number pad
-                document.querySelectorAll('.num-btn').forEach(btn => {
-                    const num = parseInt(btn.dataset.num, 10);
-                    const rem = Math.max(0, 9 - placedCounts[num]);
-                    const remSpan = btn.querySelector('.num-rem');
-                    remSpan.textContent = rem === 0 ? '✓' : rem;
-                    if (rem === 0) {
-                        btn.classList.add('opacity-40');
-                    } else {
-                        btn.classList.remove('opacity-40');
+            loadSavedGame() {
+                try {
+                    const raw = window.localStorage.getItem(this.storageKey);
+                    if (!raw) return false;
+
+                    const data = JSON.parse(raw);
+                    if (!data || data.isGameOver || !Array.isArray(data.board) || data.board.length !== 9) {
+                        return false;
                     }
-                });
+
+                    this.solution = data.solution;
+                    this.initialBoard = data.initialBoard;
+                    this.board = data.board;
+                    this.notes = data.notes.map(row => row.map(arr => new Set(arr)));
+                    this.history = (data.history || []).map(item => ({
+                        board: item.board,
+                        notes: item.notes.map(row => row.map(arr => new Set(arr)))
+                    }));
+                    this.selectedCell = data.selectedCell || null;
+                    this.difficulty = this.holesByDifficulty[data.difficulty] ? data.difficulty : 'hard';
+                    this.mistakes = data.mistakes || 0;
+                    this.maxMistakes = data.maxMistakes || 3;
+                    this.hintsRemaining = typeof data.hintsRemaining === 'number' ? data.hintsRemaining : 3;
+                    this.secondsElapsed = data.secondsElapsed || 0;
+                    this.isGameOver = false;
+                    this.isAutoCompleting = false;
+
+                    if (this.selectedCell) {
+                        this.highlightedNumber = this.board[this.selectedCell.row][this.selectedCell.col] || 0;
+                    }
+
+                    this.updateDifficultyUI();
+                    this.updateMistakesUI();
+                    this.updateHintUI();
+                    this.timerEl.textContent = this.formatTime(this.secondsElapsed);
+                    this.renderBoard();
+                    this.startTimer();
+                    this.showToast(`Resumed saved ${this.difficulty.toUpperCase()} game`);
+                    return true;
+                } catch (err) {
+                    return false;
+                }
             }
 
             /**
              * ========================================================================
-             * UI HELPERS, TIMER & CODE SHARING
+             * UI HELPERS, TIMER & IFRAME-SAFE CODE SHARING
              * ========================================================================
              */
             updateDifficultyUI() {
                 document.querySelectorAll('.diff-btn').forEach(btn => {
-                    if (btn.dataset.diff === this.difficulty) {
-                        btn.className = 'diff-btn px-2.5 py-1 rounded-md transition bg-white text-blue-600 shadow-xs';
-                    } else {
-                        btn.className = 'diff-btn px-2.5 py-1 rounded-md transition text-slate-600 hover:text-slate-900';
-                    }
+                    btn.classList.toggle('active', btn.dataset.diff === this.difficulty);
                 });
             }
 
             updateMistakesUI() {
                 this.mistakeEl.textContent = `${this.mistakes}/${this.maxMistakes}`;
-                if (this.mistakes > 0) {
-                    this.mistakeEl.classList.add('text-red-600');
-                    this.mistakeEl.classList.remove('text-slate-900');
-                } else {
-                    this.mistakeEl.classList.remove('text-red-600');
-                    this.mistakeEl.classList.add('text-slate-900');
-                }
+                this.mistakeEl.classList.toggle('has-error', this.mistakes > 0);
             }
 
             updateHintUI() {
@@ -937,6 +1535,7 @@
                 this.timerInterval = setInterval(() => {
                     this.secondsElapsed++;
                     this.timerEl.textContent = this.formatTime(this.secondsElapsed);
+                    this.saveGameState();
                 }, 1000);
             }
 
@@ -954,26 +1553,22 @@
             }
 
             showModal(id) {
-                const el = document.getElementById(id);
-                el.classList.remove('hidden');
-                el.classList.add('flex');
+                document.getElementById(id).classList.add('open');
             }
 
             hideModal(id) {
-                const el = document.getElementById(id);
-                el.classList.add('hidden');
-                el.classList.remove('flex');
+                document.getElementById(id).classList.remove('open');
             }
 
             showToast(message) {
                 const toast = document.getElementById('toast');
                 toast.textContent = message;
-                toast.classList.remove('opacity-0');
-                setTimeout(() => toast.classList.add('opacity-0'), 2200);
+                toast.classList.add('visible');
+                clearTimeout(this.toastTimer);
+                this.toastTimer = setTimeout(() => toast.classList.remove('visible'), 2200);
             }
 
             openCodeModal() {
-                // Grab clean full HTML document string so user can copy & share it directly
                 const fullHTML = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
                 document.getElementById('source-code-box').value = fullHTML;
                 this.showModal('modal-code');
@@ -981,26 +1576,38 @@
 
             copySourceCode() {
                 const textarea = document.getElementById('source-code-box');
+                textarea.focus();
                 textarea.select();
                 textarea.setSelectionRange(0, 999999);
                 try {
-                    document.execCommand('copy');
-                    const btnText = document.getElementById('copy-btn-text');
-                    btnText.textContent = 'Copied to Clipboard!';
-                    this.showToast('Full HTML code copied!');
-                    setTimeout(() => {
-                        btnText.textContent = 'Copy Full HTML Code';
-                    }, 2200);
+                    const copied = document.execCommand('copy');
+                    if (copied) {
+                        document.getElementById('copy-btn-text').textContent = 'Copied to Clipboard!';
+                        this.showToast('Full HTML code copied!');
+                        setTimeout(() => {
+                            document.getElementById('copy-btn-text').textContent = 'Copy Full HTML Code';
+                        }, 2200);
+                    } else {
+                        this.showToast('Tap & hold code box to copy manually');
+                    }
                 } catch (err) {
-                    this.showToast('Select text manually to copy');
+                    this.showToast('Tap & hold code box to copy manually');
                 }
             }
         }
 
-        // Launch the Sudoku app on window load
-        window.onload = () => {
-            window.sudokuApp = new SudokuApp();
-        };
+        // Initialize immediately once DOM is ready so the board never appears blank
+        function bootSudoku() {
+            if (!window.sudokuApp) {
+                window.sudokuApp = new SudokuApp();
+            }
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', bootSudoku);
+        } else {
+            bootSudoku();
+        }
     </script>
 
 </body></html>
